@@ -2,6 +2,7 @@
 library(magrittr)
 library(rlang)
 library(dplyr); library(tidyr); library(stringr); library(stats)
+library(purrr)
 library(tibble)
 
 chess_players <- tibble(

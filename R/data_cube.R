@@ -18,8 +18,5 @@ dc_mutate <- function(.cube, ..., .tracker_callback) {
 
 }
 
-usethis::use_github(visibility = "public")
 library(sloop)
-sum.POSIXct
-
 s3_dispatch( print(new_data_cube(chl_i1, "data_id") ) )
