@@ -28,3 +28,18 @@ chw_i1 <- chw_i1 %>%
   left_join(chess_players, by = "code")
 
 
+edits <- tibble::tibble(
+  code = c("E75354", "E47906")
+  ,data_id = c("c", "club")
+  ,value = c("NULL", "Switzerland")
+)
+keys <- c("code", "data_id")
+.x = new_snapshot_tree(keys, chl_i1)
+snapshot = .x$init #snapshot = data with keys
+apply_to = "value"
+alias = list("NULL" = NA)
+
+.x %>%
+  add_snapshot(edited1 = init %>% edit_data(edits, na_alias = "NULL"),
+               edited2 = .env$init %>% edit_data(edits, na_alias = "NULL"),
+               edited3 = filter(.data$edited1, data_id == "club") )
