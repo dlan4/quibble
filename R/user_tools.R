@@ -35,6 +35,10 @@ plot.snapshot_tree <- function(x, record = NULL, ...) {
 }
 
 #' Compare snapshots
+#' @param tree a snapshot tree
+#' @param values list of value columns
+#' @param ... snapshots to select
+#' @param comp_names glue specification using {.col} and/or {.name}
 #' @export
 history <- function(tree, values, ..., comp_names = "{.col}_{.name}" ) {
   values <- rlang::ensyms(values)
@@ -54,7 +58,10 @@ history <- function(tree, values, ..., comp_names = "{.col}_{.name}" ) {
 }
 
 #' Compare all snapshots within a tree
-#' A special case of history()
+#' This is a special case of history()
+#' @param tree a snapshot tree
+#' @param values list of value columns
+#' @param comp_names glue specification using {.col} and/or {.name}
 #' @export
 history_all <- function(tree, values, comp_names = "{.col}_{.name}") {
   values <- rlang::ensym(values)

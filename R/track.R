@@ -1,6 +1,12 @@
 
 `%>%` <- magrittr::`%>%`
 
+#' Track a dataframe through stages
+#' @param ... dataframes (preferably one) to track
+#' @param keys a vector of keys used to identify the data
+#' @details
+#' This function returns an object of class snapshot_tree, which is a list containing
+#'  keyed data (snapshots) which have been evolve()d, as well as the parents of each snapshot.
 #' @export
 track <- function(..., keys) {
   x <- list(...)
@@ -9,6 +15,11 @@ track <- function(..., keys) {
   return(tree)
 }
 
+#' Add new snapshots to a tree
+#' @param tree a snapshot tree
+#' @param ... Name-value pairs of snapshots to add to the tree
+#' @param from Optional: the snapshot which is being used. If not provided, this
+#'  is automatically deduced from the expressions supplied.
 #' @export
 evolve <- function(tree, ..., from) {
   snaps <- rlang::enquos(...)
@@ -32,6 +43,12 @@ evolve <- function(tree, ..., from) {
   return (tree)
 }
 
+#' Combine snapshots
+#'
+#' Completes a full join of the data, then coalesces where there are columns with the same name.
+#' @param ... snapshots to merge
+#' @param resolve if prefer_first (the default), the first named snapshot will
+#'   be preferred when coalescing.
 #' @export
 merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
   branches <<- list(...)

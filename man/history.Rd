@@ -6,6 +6,15 @@
 \usage{
 history(tree, values, ..., comp_names = "{.col}_{.name}")
 }
+\arguments{
+\item{tree}{a snapshot tree}
+
+\item{values}{list of value columns}
+
+\item{...}{snapshots to select}
+
+\item{comp_names}{glue specification using {.col} and/or {.name}}
+}
 \description{
 Compare snapshots
 }
