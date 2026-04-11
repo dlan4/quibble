@@ -1,6 +1,4 @@
 
-`%>%` <- magrittr::`%>%`
-
 #' Track a dataframe through stages
 #' @param ... dataframes (preferably one) to track
 #' @param keys a vector of keys used to identify the data
@@ -51,7 +49,7 @@ evolve <- function(tree, ..., from) {
 #'   be preferred when coalescing.
 #' @export
 merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
-  branches <<- list(...)
+  branches <- list(...)
   stopifnot ( all( purrr::map_lgl(branches, is_snapshot) ) )
   keys <- get_keys(branches[[1]])
 
@@ -104,6 +102,12 @@ new_snapshot_tree <- function(x, keys) {
 validate_snapshot_tree <- function(x) {
 
 }
+
+#' Print
+#'
+#' Prints a snapshot tree shwoing the most recent frame
+#' @param x Object to format or print
+#' @param ... arguments to pass to methods
 #' @export
 print.snapshot_tree <- function(x, ...) {
   s <- x$data
@@ -125,15 +129,21 @@ new_snapshot <- function(data, keys = NULL, from = NULL) {
 get_keys <- function(x, ...) {
   UseMethod("get_keys")
 }
+#' Get keys from an object
 #' @export
+#' @method get_keys snapshot
 get_keys.snapshot <- function(x, ...) {
   return(attr(x, "keys"))
 }
+#' Get keys from an object
 #' @export
+#' @method get_keys snapshot_tree
 get_keys.snapshot_tree <- function(x, ...) {
   return(attr(x, "keys"))
 }
+#' Get keys from an object
 #' @export
+#' @method get_keys data.frame
 get_keys.data.frame <- function(x, keys, ...) {
   if (missing(keys)) {
     stop("argument \"keys\" is missing and must be provided for dataframes")

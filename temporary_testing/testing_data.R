@@ -1,9 +1,6 @@
 
-library(magrittr)
-library(rlang)
-library(dplyr); library(tidyr); library(stringr); library(stats)
-library(purrr)
-library(tibble)
+#  packages <- rlang::exprs("magrittr", "tidyverse", "rlang")
+#  purrr::walk(packages, \(p) eval(rlang::expr(library(!!p)) ) )
 
 chess_players <- tibble(
   code = rep(c("E13455", "E75354", "E95301", "E4747906", "E50345", "E93901"), each=2)

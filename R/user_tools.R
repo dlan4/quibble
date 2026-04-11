@@ -5,6 +5,7 @@
 #' @param record optionally a named vector of key-value pairs, to show values for a specific key in the graph
 #' @param ... arguments to be passed to methods
 #' @export
+#' @method plot snapshot_tree
 plot.snapshot_tree <- function(x, record = NULL, ...) {
   edges <- purrr::imap( x$parents, \(parents, child) {
     tibble::tibble(from = parents, to = child)
