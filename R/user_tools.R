@@ -14,7 +14,7 @@ plot.snapshot_tree <- function(x, record = NULL, ...) {
     # however, from (the parent(s)) may be NA
     purrr::list_rbind() %>%
     dplyr::filter(!is.na(from))
-  keys <- get_keys(tree)
+  keys <- get_keys(x)
 
   if ( 1 == 2) {
   #if (!is.null(record)) {
@@ -27,6 +27,7 @@ plot.snapshot_tree <- function(x, record = NULL, ...) {
     x$data$init_1 %>% dplyr::filter(!!!record_filter_expr) %>% dplyr::pull(value)
   }
   graph <- igraph::graph_from_data_frame(edges)
+
   base::plot(graph,
        layout = igraph::layout_as_tree(graph),
        edge.arrow.size = 0.5,
@@ -34,6 +35,7 @@ plot.snapshot_tree <- function(x, record = NULL, ...) {
        vertex.size = 30,
        vertex.color = "lightblue")
 }
+
 
 #' Compare snapshots
 #' @param tree a snapshot tree

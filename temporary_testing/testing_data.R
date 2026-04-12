@@ -47,4 +47,8 @@ merged_tree <- .x %>%
          edited3 = dplyr::bind_rows(init_1, tibble::tibble(code = c("E54500","E54500"), data_id=c("club","rating"),
                                                    body = c("ecf","ecf"), value=c("Battersea",1400)) ),
          edited_merge = merge_branches(edited1, edited3) )
+plot(merged_tree)
+class(merged_tree)
+history_all(merged_tree, value)
+
 

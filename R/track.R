@@ -48,6 +48,7 @@ evolve <- function(tree, ..., from) {
 #' @param resolve if prefer_first (the default), the first named snapshot will
 #'   be preferred when coalescing.
 #' @export
+
 merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
   branches <- list(...)
   stopifnot ( all( purrr::map_lgl(branches, is_snapshot) ) )
@@ -55,18 +56,19 @@ merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
 
   if (missing(resolve)) resolve <- "prefer_first"
   merged <- branches[[1]]
-  purrr::map( branches, \(branch) names(branch)[!names(branch) %in% keys] )
+
   for (i in 2:length(branches) ) {
     value_columns <- purrr::map( list( merged, branches[[i]] ),
                                  \(x) names(x)[!names(x) %in% keys] )
     # columns which must be coalesced
-    merge_cols <- rlang::inject( intersect(!!!common_values) )
+    merge_cols <- rlang::inject( intersect(!!!value_columns) )
     all_columns <- purrr::list_c(value_columns) %>% c(keys)
     # join data
     joined <- dplyr::full_join( merged, branches[[i]], by = keys )
     # cols to coalesce
     cols_to_coalesce <- which(!names(joined) %in% all_columns)
     cols_as_syms <- rlang::syms(names(joined))
+    # column numbers split
     coalesce_exprs <- split(cols_to_coalesce, ceiling(seq_along(cols_to_coalesce) / 2) ) %>%
       setNames(merge_cols) %>%
       purrr::map( \(coalesce_inds) {
@@ -108,12 +110,13 @@ validate_snapshot_tree <- function(x) {
 #' Prints a snapshot tree shwoing the most recent frame
 #' @param x Object to format or print
 #' @param ... arguments to pass to methods
+#' @method print snapshot_tree
 #' @export
 print.snapshot_tree <- function(x, ...) {
   s <- x$data
   cat(sep="","Snapshot tree with frames: ", paste0( names(s), collapse = ", "),
       ". Showing ",names(s)[length(s)],":\nKeys = ",paste0(get_keys(x), collapse=", "),"\n")
-  print( s[[length(s)]] )
+  print( s[[length(s)]], ... )
 }
 
 new_snapshot <- function(data, keys = NULL, from = NULL) {
@@ -130,20 +133,20 @@ get_keys <- function(x, ...) {
   UseMethod("get_keys")
 }
 #' Get keys from an object
-#' @export
 #' @method get_keys snapshot
+#' @export
 get_keys.snapshot <- function(x, ...) {
   return(attr(x, "keys"))
 }
 #' Get keys from an object
-#' @export
 #' @method get_keys snapshot_tree
+#' @export
 get_keys.snapshot_tree <- function(x, ...) {
   return(attr(x, "keys"))
 }
 #' Get keys from an object
-#' @export
 #' @method get_keys data.frame
+#' @export
 get_keys.data.frame <- function(x, keys, ...) {
   if (missing(keys)) {
     stop("argument \"keys\" is missing and must be provided for dataframes")
