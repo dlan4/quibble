@@ -47,8 +47,25 @@ merged_tree <- .x %>%
          edited3 = dplyr::bind_rows(init_1, tibble::tibble(code = c("E54500","E54500"), data_id=c("club","rating"),
                                                    body = c("ecf","ecf"), value=c("Battersea",1400)) ),
          edited_merge = merge_branches(edited1, edited3) )
+record = c("code" = "E54500", data_id = "club", body = "ecf")
 plot(merged_tree)
 class(merged_tree)
-history_all(merged_tree, value)
+history_all(merged_tree, value, diffs = TRUE) %>%
+  filter(.is_different)
+plot(merged_tree, record = c("code" = "E54500", "data_id" = "rating", "body" = "ecf"))
+
+second_data <- track(tibble::tibble(geo_id = rep(c("A123","A435","A56","B413","B350","C403","C406"),each=5),
+                      data_id = rep(c("staff_exp","travel_exp","training_exp","sales_inc","services_inc"),times=7),
+                      value = c(105,303,207,126,253,
+                                204,100,202,303,297,
+                                186,104,117,205,213,
+                                192,181,0,106,52,
+                                120,55,175,46,58,
+                                136,108,71,94,207,
+                                120,125,45,170,159)),
+                     keys = c("geo_id", "data_id") )
+second_data %>% plot(record = c("A123", "travel_exp") )
+
+names(c(5, 12) %>% setNames(c("a", "b") ))
 
 

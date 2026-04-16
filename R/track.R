@@ -153,4 +153,17 @@ get_keys.data.frame <- function(x, keys, ...) {
   }
 }
 
+#' Return all combinations of keys
+#' @param tree snapshot tree
+#' @param ... snapshot names
+get_key_combs <- function(tree, ...) {
+  snaps <- rlang::ensyms(...)
+  snaps <- as.character(snaps)
+  keys <- get_keys(tree)
+  keys <- rlang::syms(keys)
+  tree$data[snaps] %>%
+    purrr::list_rbind() %>%
+    dplyr::distinct( !!!keys )
+}
+
 
