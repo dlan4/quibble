@@ -3,7 +3,6 @@
 S3method(get_keys,data.frame)
 S3method(get_keys,snapshot)
 S3method(get_keys,snapshot_tree)
-S3method(plot,snapshot_tree)
 S3method(print,snapshot_tree)
 export(edit_data)
 export(evolve)

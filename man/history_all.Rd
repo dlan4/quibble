@@ -5,7 +5,7 @@
 \title{Compare all snapshots within a tree
 This is a special case of history()}
 \usage{
-history_all(tree, values, comp_names = "{.col}_{.name}")
+history_all(tree, values, comp_names = "{.col}_{.name}", ...)
 }
 \arguments{
 \item{tree}{a snapshot tree}
@@ -13,6 +13,8 @@ history_all(tree, values, comp_names = "{.col}_{.name}")
 \item{values}{list of value columns}
 
 \item{comp_names}{glue specification using {.col} and/or {.name}}
+
+\item{...}{arguments to pass to history()}
 }
 \description{
 Compare all snapshots within a tree

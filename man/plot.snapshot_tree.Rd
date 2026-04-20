@@ -4,12 +4,17 @@
 \alias{plot.snapshot_tree}
 \title{Plot snapshot tree as a graph}
 \usage{
-\method{plot}{snapshot_tree}(x, record = NULL, ...)
+\method{plot}{snapshot_tree}(x, record = NULL, value_col = NULL, plot_function, ...)
 }
 \arguments{
 \item{x}{a snapshot tree}
 
 \item{record}{optionally a named vector of key-value pairs, to show values for a specific key in the graph}
+
+\item{value_col}{name of a column to draw values from, if record is specified}
+
+\item{plot_function}{a function with arguement graph producing the output of the plot. can map
+value, .in (int), .out (int), .type (normal/init/merge/final) and .label}
 
 \item{...}{arguments to be passed to methods}
 }

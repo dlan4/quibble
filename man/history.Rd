@@ -4,7 +4,7 @@
 \alias{history}
 \title{Compare snapshots}
 \usage{
-history(tree, values, ..., comp_names = "{.col}_{.name}")
+history(tree, values, ..., comp_names = "{.col}_{.name}", diffs = FALSE)
 }
 \arguments{
 \item{tree}{a snapshot tree}
@@ -14,6 +14,8 @@ history(tree, values, ..., comp_names = "{.col}_{.name}")
 \item{...}{snapshots to select}
 
 \item{comp_names}{glue specification using {.col} and/or {.name}}
+
+\item{diffs}{if TRUE, will display TRUE/FALSE}
 }
 \description{
 Compare snapshots
