@@ -4,29 +4,35 @@
 #' @param x a snapshot tree
 #' @param record optionally a named vector of key-value pairs, to show values for a specific key in the graph
 #' @param value_col name of a column to draw values from, if record is specified
+#' @param metric metric to show: either value, row_n, or a summary function with argument table, which returns
+#'   a character of length 1 for each snapshot. Defaults to 'value' if record is provided
 #' @param plot_function a function with arguement graph producing the output of the plot. can map
 #'   value, .in (int), .out (int), .type (normal/init/merge/final) and .label
 #' @param ... arguments to be passed to methods
 #' @method plot snapshot_tree
+#' @export
 plot.snapshot_tree <- function(x, record = NULL, value_col = NULL,
-                               plot_function, ...) {
+                       metric = c("value", "row_n"), plot_function, ...) {
   keys <- get_keys(x)
   # if there's only one value column assume that should be plotted
   if (!is.null(record)) {
     if (is.null(names(record))) {
       names(record) <- keys
     }
-    if (is.null(value_col)) {
-      non_key_names <- unique(lapply(x$data,names))[[1]]
-      non_key_names <- non_key_names[ !non_key_names %in% names(record) ]
-      if (length(non_key_names) == 1) value_col <- rlang::sym(non_key_names)
-    }
   }
-  validate_plot <- rlang::exprs(is.null(record), is.null(value_col))
-  if( rlang::inject( sum(!!!validate_plot) ) == 1 ) {
-    stop("Must provide both record and value_col")
+  if (is.null(value_col)) {
+    non_key_names <- unique(lapply(x$data,names))[[1]]
+    non_key_names <- non_key_names[ !non_key_names %in% keys ]
+    if (length(non_key_names) == 1) {value_col <- rlang::sym(non_key_names)
+    } else value_col <- rlang::sym(non_key_names[1])
   }
 
+  #validate_plot <- rlang::exprs(is.null(record), is.null(value_col))
+  #if( rlang::inject( sum(!!!validate_plot) ) == 1 ) {
+  #  stop("Must provide both record and value_col")
+  #}
+
+  # Just the edges not the metadata to go with them
   edges <- purrr::imap( x$parents, \(parents, child) {
     tibble::tibble(from = parents, to = child)
   } ) %>%
@@ -34,20 +40,32 @@ plot.snapshot_tree <- function(x, record = NULL, value_col = NULL,
     # however, from (the parent(s)) may be NA
     purrr::list_rbind()
 
-  # if record is provided, add value column with which to populate data
-  if ( !is.null(record) ) {
-    value_col <- rlang::enquo(value_col)
+  # if record is provided, add value metric with which to populate data
+  if (!missing(record) & missing(metric)) metric <- "value"
+  missing_metric <- missing(metric)
+  value_capture_fns <- list()
+  value_capture_fns$value <- function(table) {
     record_filter_expr <- purrr::imap( record, \(value, key) {
       rlang::call2(`==`, rlang::sym(key), value)
-      }) %>% unname
+    }) %>% unname
 
-    edge_data <- x$data %>% names %>% tibble::tibble(to = .) %>%
-      dplyr::mutate(value = purrr::map_chr(to, \(table) {
-        x$data[[table]] %>%
-          dplyr::filter(!!!record_filter_expr) %>%
-          dplyr::select(!!value_col) %>%
-          {ifelse( nrow(.),  as.character(.), "NULL") }
-        } ))
+    x$data[[table]] %>%
+      dplyr::filter(!!!record_filter_expr) %>%
+      dplyr::select(!!value_col) %>%
+      dplyr::mutate(!!value_col := ifelse(is.numeric(!!value_col), round(!!value_col, 1),
+                                          !!value_col)) %>%
+      {ifelse( nrow(.),  as.character(.), "NULL") }
+  }
+  value_capture_fns$row_n <- function(table) {
+    x$data[[table]] %>% nrow %>% as.character
+  }
+  if ( !missing_metric ) {
+    value_col <- if (!inherits(value_col, "name")) rlang::ensym(value_col) else value_col
+    fn <- if(rlang::is_function(metric)) metric else value_capture_fns[[metric]]
+
+    edge_data <- x$data %>% names %>%
+      tibble::tibble(to = .) %>%
+      mutate(!!value_col := map_chr(to, fn) )
     edges <- dplyr::left_join(edges, edge_data, by = "to")
   }
   graph_in <- list()
@@ -59,18 +77,22 @@ plot.snapshot_tree <- function(x, record = NULL, value_col = NULL,
   graph_in$inout <- purrr::map( c("in", "out"), \(mode)
                 igraph::degree(graph_in$graph, mode = mode) )
 
+  if ( is.null( edges[[value_col]] )) edges[[value_col]] <- NA
   graph_in$values <- edges %>%
-    dplyr::select( to, !!value_col ) %>%
+    dplyr::select( tidyselect::any_of(c("to", as.character(value_col))) ) %>%
     dplyr::distinct() %>%
     dplyr::mutate(.in = purrr::map_dbl(to, \(id)
                                       lookup(id, names(graph_in$inout[[1]]), graph_in$inout[[1]] ) ),
                   .out = purrr::map_dbl(to, \(id)
                                        lookup(id, names(graph_in$inout[[2]]), graph_in$inout[[2]]) ),
+                  # need this regardless of if it's the value_col
+                  .num_rows = purrr::map_dbl(to, ~as.numeric(value_capture_fns$row_n(.)) ),
                   .type = dplyr::case_when(.in == 0 ~ "init",
                                            .in > 1 ~ "merge",
+                                           .num_rows < cummax(.num_rows) ~ "subset",
                                            .out == 0 ~ "final",
                                            TRUE ~ "normal"),
-                  .label = dplyr::case_when(is.null(value_col) ~ to,
+                  .label = dplyr::case_when(missing_metric ~ to,
                                             TRUE ~ rlang::inject( paste0(to, "\n", !!value_col) ))
     )
 
@@ -96,7 +118,8 @@ quibble_plot_default <- function(graph) {
     ggplot2::scale_colour_manual(values = c(init = "#cb5252",
                                             merge = "#218760",
                                             final = "#2d1b37",
-                                            normal = "#d8d8d5"),
+                                            normal = "#d8d8d5",
+                                            subset = "#4c78a8"),
                                  name = "Node type") +
     ggplot2::theme_void() +
     ggplot2::theme(
@@ -150,3 +173,23 @@ history_all <- function(tree, values, comp_names = "{.col}_{.name}", ...) {
   all_snapshot_names <- rlang::syms( names(tree$data) )
   history(tree, !!values, !!!all_snapshot_names, comp_names = comp_names, ...)
 }
+
+#' Restore key combinatioins to a snapshot
+#'
+#' One use case for this is restoring original keys
+#' @param data snapshot
+#' @param to snapshot which contains the key combinations you want to restore
+#' @param which keys to restore - not in use yet
+#' @export
+restore_keys <- function(data, to, which = "all") {
+  keys <- get_keys(to)
+  keys_in_data <- keys[keys %in% names(data)]
+  col_order <- keys %>% union(names(data)) %>% rlang::syms()
+  to[keys] %>%
+    dplyr::left_join(data, by = keys_in_data) %>%
+    dplyr::select(!!!col_order) %>%
+    # preserve snapshot order
+    new_snapshot(keys = keys)
+}
+
+

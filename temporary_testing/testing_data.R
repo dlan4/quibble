@@ -64,7 +64,21 @@ second_data <- track(tibble::tibble(geo_id = rep(c("A123","A435","A56","B413","B
                                 136,108,71,94,207,
                                 120,125,45,170,159)),
                      keys = c("geo_id", "data_id") )
-second_data %>% plot(record = c("A123", "travel_exp") )
+second_agg <- list(A = exprs(exp = staff_exp + travel_exp + training_exp,
+                             inc = sales_inc + services_inc),
+                   B = exprs(net_exp = exp - inc))
+
+made_edits <- second_data %>%
+  evolve(edited = edit_data(init_1, data.frame(geo_id = "A56", data_id = ".", value = NA)),
+         imputed_values = summarise(edited, value = mean(value, na.rm = TRUE), .by = "data_id"),
+         imputed_values = restore_keys(imputed_values, edited),
+         filtered = filter(imputed_values, data_id != "travel_exp"),
+         edited_imputed = merge_branches(edited, filtered),
+         aggregated = aggregate_data(edited_imputed, second_agg, col = data_id, value = value))
+
+made_edits %>% history(value, init_1, edited, edited_imputed, aggregated, diffs = TRUE) %>% filter(.is_different)
+made_edits %>% plot(record = c("A56", "inc") )
+made_edits %>% plot(metric = "row_n")
 
 names(c(5, 12) %>% setNames(c("a", "b") ))
 

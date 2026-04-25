@@ -4,16 +4,16 @@
 \alias{edit_data}
 \title{Apply edits to a dataframe}
 \usage{
-edit_data(data, edits, na_alias = NA, ...)
+edit_data(data, edits, ...)
 }
 \arguments{
 \item{data}{a snapshot or a dataframe}
 
 \item{edits}{a list or dataframe of edits to be applied}
 
-\item{na_alias}{an optional alias to use for NAs}
-
 \item{...}{arguments passsed on to methods, primarily keys if data is a dataframe}
+
+\item{na_alias}{an optional alias to use for NAs}
 }
 \description{
 Apply edits to a dataframe

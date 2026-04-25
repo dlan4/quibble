@@ -27,7 +27,6 @@ evolve <- function(tree, ..., from) {
     tree_mask <- rlang::as_data_mask(tree$data)
     tree_mask$.tree <- tree$data
     snapshot_name <- names(snaps)[i]
-    tree$data[[snapshot_name]] <- rlang::eval_tidy(snaps[[i]], tree_mask)
 
     # find parent
     if (!missing(from)) {
@@ -36,7 +35,11 @@ evolve <- function(tree, ..., from) {
       parents <- find_parents( expr=rlang::get_expr( snaps[[i]] ),
                               tree = tree )
     }
-    tree$parents[[snapshot_name]] <- parents
+    # ensure parent is not the same as child
+    tree$parents[[snapshot_name]] <- parents[parents != snapshot_name]
+    # eval
+    tree$data[[snapshot_name]] <- rlang::eval_tidy(snaps[[i]], tree_mask) %>%
+      new_snapshot(., keys = keys, from = NULL)
   }
   return (tree)
 }
@@ -48,7 +51,6 @@ evolve <- function(tree, ..., from) {
 #' @param resolve if prefer_first (the default), the first named snapshot will
 #'   be preferred when coalescing.
 #' @export
-
 merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
   branches <- list(...)
   stopifnot ( all( purrr::map_lgl(branches, is_snapshot) ) )
@@ -80,7 +82,14 @@ merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
   return(merged)
 }
 
+#' Check if object is a snapshot
+#' @param x object to check
+#' @export
 is_snapshot <- function(x) "snapshot" %in% class(x)
+
+#' Check if object is a snapshot tree
+#' @param x object to check
+#' @export
 is_snapshot_tree <- function(x) "snapshot_tree" %in% class(x)
 
 new_snapshot_tree <- function(x, keys) {
