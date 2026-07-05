@@ -15,6 +15,5 @@ track(..., keys)
 Track a dataframe through stages
 }
 \details{
-This function returns an object of class snapshot_tree, which is a list containing
- keyed data (snapshots) which have been evolve()d, as well as the parents of each snapshot.
+This function creates a tracked_df object.
 }

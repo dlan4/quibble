@@ -11,5 +11,10 @@ More about what it does (maybe more than one line). Continuation lines should be
 \author{
 \strong{Maintainer}: Jane Doe \email{jane@example.com}
 
+Authors:
+\itemize{
+  \item Jane Doe \email{jane@example.com}
+}
+
 }
 \keyword{internal}

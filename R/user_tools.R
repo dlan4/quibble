@@ -193,3 +193,28 @@ restore_keys <- function(data, to, which = "all") {
 }
 
 
+
+
+#' Replace names and symbols in an expression
+#'
+#' @param expr Expression to modify
+#' @param replace symbol/name to replace
+#' @param replacement character replacement value
+#' @export
+replace_expr <- function(expr, replace, replacement) {
+
+  if (is.symbol(expr) && identical(expr, as.symbol(replace))) {
+    return(rlang::sym(replacement))
+  }
+  if (is.call(expr)) {
+    nms <- names(expr)
+    if (!is.null(nms)) {
+      nms[nms == replace] <- replacement
+    }
+    expr[-1] <- lapply(expr[-1], replace_expr, replace, replacement)
+    names(expr) <- nms
+  }
+
+  expr
+}
+

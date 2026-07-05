@@ -3,8 +3,7 @@
 #' @param ... dataframes (preferably one) to track
 #' @param keys a vector of keys used to identify the data
 #' @details
-#' This function returns an object of class snapshot_tree, which is a list containing
-#'  keyed data (snapshots) which have been evolve()d, as well as the parents of each snapshot.
+#' This function creates a tracked_df object.
 #' @export
 track <- function(..., keys) {
   x <- list(...)
@@ -19,7 +18,7 @@ track <- function(..., keys) {
 #' @param from Optional: the snapshot which is being used. If not provided, this
 #'  is automatically deduced from the expressions supplied.
 #' @export
-evolve <- function(tree, ..., from) {
+stage <- function(tree, ..., from) {
   snaps <- rlang::enquos(...)
   keys <- get_keys(tree)
   for (i in seq_along(snaps)) {
