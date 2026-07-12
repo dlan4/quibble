@@ -4,12 +4,12 @@
 \alias{evolve}
 \title{Add new snapshots to a tree}
 \usage{
-evolve(tree, ..., from)
+evolve(.x, ..., .from)
 }
 \arguments{
-\item{tree}{a snapshot tree}
-
 \item{...}{Name-value pairs of snapshots to add to the tree}
+
+\item{tree}{a snapshot tree}
 
 \item{from}{Optional: the snapshot which is being used. If not provided, this
 is automatically deduced from the expressions supplied.}

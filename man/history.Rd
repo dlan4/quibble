@@ -7,7 +7,7 @@
 history(tree, values, ..., comp_names = "{.col}_{.name}", diffs = FALSE)
 }
 \arguments{
-\item{tree}{a snapshot tree}
+\item{tree}{a tracked_df object}
 
 \item{values}{list of value columns}
 

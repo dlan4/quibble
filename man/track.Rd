@@ -4,17 +4,18 @@
 \alias{track}
 \title{Track a dataframe through stages}
 \usage{
-track(..., keys)
+track(data, keys, name = "init")
 }
 \arguments{
-\item{...}{dataframes (preferably one) to track}
+\item{data}{dataframe to track}
 
 \item{keys}{a vector of keys used to identify the data}
+
+\item{name}{name of the dataframe within the tracked_df}
 }
 \description{
 Track a dataframe through stages
 }
 \details{
-This function returns an object of class snapshot_tree, which is a list containing
- keyed data (snapshots) which have been evolve()d, as well as the parents of each snapshot.
+This function creates a tracked_df object.
 }

@@ -9,6 +9,7 @@ exclude <- function(...) {
 #' Print exclude object
 #' @param x exclude object
 #' @param ... pass to method
+#' @export
 print.exclude <- function(x, ...) {
 
 }
