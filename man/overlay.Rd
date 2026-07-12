@@ -4,14 +4,16 @@
 \alias{overlay}
 \title{Overlay one dataframe onto another}
 \usage{
-overlay(x, y, by, perl = TRUE)
+overlay(x, y, by, ..., perl = TRUE)
 }
 \arguments{
-\item{x}{dataframe}
+\item{x}{dataframe to be edited}
 
 \item{y}{dataframe containing edits}
 
 \item{by}{vector of columns to join by}
+
+\item{...}{These dots are for future extensions and must be empty.}
 
 \item{perl}{use perl-compatible regex}
 }

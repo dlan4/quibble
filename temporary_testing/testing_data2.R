@@ -73,19 +73,16 @@ add_timing <- function(name, tim) {
     list = rlang::list2(!!name := tim, control = std_overlay_otp) , times=5)
   eval_tidy(tim)
 }
-add_timing("reduce", overlay(x, y, by = c("geo_id", "fruit")) )
+#add_timing("reduce", overlay(x, y, by = c("geo_id", "fruit")) )
 as.list(timings)
-microbenchmark::microbenchmark(
-  for_loop = overlay(x, y, by = c("geo_id", "fruit")),
-  times = 50
-)
+#microbenchmark::microbenchmark(
+#  for_loop = overlay(x, y, by = c("geo_id", "fruit")),
+#  times = 50
+#)
 
-track(init = shop_costs)
 
-y = tibble(geo_id = ".", fruit = "^black", status = "Removed",
-           cost_at_shop = NA)
-
-quibble::track(init = x, keys = c("geo_id", "fruit")) %>%
-  quibble::stage(edits1 = quibble::overlay(init, .env$y, by = quibble::get_keys(.))) %>%
+quibble::track(x, keys = c("geo_id", "fruit")) %>%
+  quibble::evolve(
+    edits1 = quibble::overlay(init, .env$y, by = quibble::get_keys(.)))
   history_all(values = status, diffs = TRUE)
 

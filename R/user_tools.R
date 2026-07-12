@@ -1,7 +1,7 @@
 
-#' Plot snapshot tree as a graph
+#' Plot tracked dataframe as a graph
 #'
-#' @param x a snapshot tree
+#' @param x a tracked_df object
 #' @param record optionally a named vector of key-value pairs, to show values for a specific key in the graph
 #' @param value_col name of a column to draw values from, if record is specified
 #' @param metric metric to show: either value, row_n, or a summary function with argument table, which returns
@@ -9,9 +9,9 @@
 #' @param plot_function a function with arguement graph producing the output of the plot. can map
 #'   value, .in (int), .out (int), .type (normal/init/merge/final) and .label
 #' @param ... arguments to be passed to methods
-#' @method plot snapshot_tree
+#' @method plot tracked_df
 #' @export
-plot.snapshot_tree <- function(x, record = NULL, value_col = NULL,
+plot.tracked_df <- function(x, record = NULL, value_col = NULL,
                        metric = c("value", "row_n"), plot_function, ...) {
   keys <- get_keys(x)
   # if there's only one value column assume that should be plotted
@@ -98,11 +98,11 @@ plot.snapshot_tree <- function(x, record = NULL, value_col = NULL,
 
   graph <- igraph::graph_from_data_frame(graph_in$edges, vertices = graph_in$values, directed = TRUE)
 
-  if (missing(plot_function)) plot_function <- quibble_plot_default
+  if (missing(plot_function)) plot_function <- crumbs_plot_default
   plot_function(graph = graph)
 }
 
-quibble_plot_default <- function(graph) {
+crumbs_plot_default <- function(graph) {
   ggraph::ggraph(graph, layout = "sugiyama") +
     ggraph::geom_edge_link(
       arrow = ggplot2::arrow(length = ggplot2::unit(3, "mm")),
@@ -129,7 +129,7 @@ quibble_plot_default <- function(graph) {
 }
 
 #' Compare snapshots
-#' @param tree a snapshot tree
+#' @param tree a tracked_df object
 #' @param values list of value columns
 #' @param ... snapshots to select
 #' @param comp_names glue specification using {.col} and/or {.name}

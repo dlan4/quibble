@@ -1,16 +1,18 @@
 
 #' Track a dataframe through stages
-#' @param ... dataframes (preferably one) to track
+#' @param data dataframe to track
 #' @param keys a vector of keys used to identify the data
+#' @param name name of the dataframe within the tracked_df
 #' @details
 #' This function creates a tracked_df object.
 #' @export
-track <- function(..., keys) {
-  x <- list(...)
-  tree <- new_snapshot_tree(x, keys)
-  validate_snapshot_tree(tree)
-  return(tree)
+track <- function(data, keys, name = "init") {
+
+  t_df <- new_tracked_df(data, keys, name)
+  validate_tracked_df(t_df)
+  return(t_df)
 }
+
 
 #' Add new snapshots to a tree
 #' @param tree a snapshot tree
@@ -18,38 +20,39 @@ track <- function(..., keys) {
 #' @param from Optional: the snapshot which is being used. If not provided, this
 #'  is automatically deduced from the expressions supplied.
 #' @export
-stage <- function(tree, ..., from) {
+evolve <- function(.x, ..., .from) {
   snaps <- rlang::enquos(...)
-  keys <- get_keys(tree)
+  keys <- get_keys(.x)
   for (i in seq_along(snaps)) {
     # evaluate
-    tree_mask <- rlang::as_data_mask(tree$data)
-    tree_mask$.tree <- tree$data
+    tracked_mask <- rlang::as_data_mask(.x$data)
+    tracked_mask$.tracked <- .x$data
     snapshot_name <- names(snaps)[i]
 
     # find parent
-    if (!missing(from)) {
-      parents <- from
+    if (!missing(.from)) {
+      parents <- .from
     } else {
       parents <- find_parents( expr=rlang::get_expr( snaps[[i]] ),
-                              tree = tree )
+                              tracked = .x )
     }
     # ensure parent is not the same as child
-    tree$parents[[snapshot_name]] <- parents[parents != snapshot_name]
+    .x$parents[[snapshot_name]] <- parents[parents != snapshot_name]
     # eval
-    tree$data[[snapshot_name]] <- rlang::eval_tidy(snaps[[i]], tree_mask) %>%
+    .x$data[[snapshot_name]] <- rlang::eval_tidy(snaps[[i]], tracked_mask) %>%
       new_snapshot(., keys = keys, from = NULL)
   }
-  return (tree)
+  return (.x)
 }
 
 #' Combine snapshots
 #'
 #' Completes a full join of the data, then coalesces where there are columns with the same name.
+#'
+#' NOT IN USE
 #' @param ... snapshots to merge
 #' @param resolve if prefer_first (the default), the first named snapshot will
 #'   be preferred when coalescing.
-#' @export
 merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
   branches <- list(...)
   stopifnot ( all( purrr::map_lgl(branches, is_snapshot) ) )
@@ -89,40 +92,36 @@ is_snapshot <- function(x) "snapshot" %in% class(x)
 #' Check if object is a snapshot tree
 #' @param x object to check
 #' @export
-is_snapshot_tree <- function(x) "snapshot_tree" %in% class(x)
+is_tracked_df <- function(x) "tracked_df" %in% class(x)
 
-new_snapshot_tree <- function(x, keys) {
-  init_count <- 1
-  for (i in seq_along(x) ) {
-    # handle missing name
-    if ( is.na( names(x)[i] %||% NA ) ) {
-      names(x)[i] <- sprintf("init_%i", init_count)
-      init_count <- init_count + 1
-    }
-    # convert dataframe to snapshot
-    if ( !is_snapshot( x[[i]] ) ) {
-      x[[i]] <- new_snapshot( x[[i]], keys = keys )
-    }
-  }
-  parents <- rep(NA, length(x)) %>% as.list %>% setNames(names(x))
-  structure( list(data = x, parents = parents),
-             class = c("snapshot_tree", "list"), keys = keys )
+new_tracked_df <- function(x, keys, name) {
+  snap <- new_snapshot(x, keys = keys)
+  snap <- rlang::list2(!!name := snap)
+  parents <- rep(NA, length(x)) %>%
+    as.list %>%
+    rlang::set_names(names(x))
+  structure( list(data = snap, parents = parents),
+             class = c("tracked_df", "list"), keys = keys )
 }
 
-validate_snapshot_tree <- function(x) {
+validate_tracked_df <- function(x) {
 
+}
+
+latest <- function(t_df) {
+  t_df[[length(t_df)]]
 }
 
 #' Print
 #'
-#' Prints a snapshot tree shwoing the most recent frame
+#' Prints a tracked DF showing the most recent snapshot
 #' @param x Object to format or print
 #' @param ... arguments to pass to methods
-#' @method print snapshot_tree
+#' @method print tracked_df
 #' @export
-print.snapshot_tree <- function(x, ...) {
+print.tracked_df <- function(x, ...) {
   s <- x$data
-  cat(sep="","Snapshot tree with frames: ", paste0( names(s), collapse = ", "),
+  cat(sep="","Tracked dataframe with snapshots: ", paste0( names(s), collapse = ", "),
       ". Showing ",names(s)[length(s)],":\nKeys = ",paste0(get_keys(x), collapse=", "),"\n")
   print( s[[length(s)]], ... )
 }
@@ -147,9 +146,9 @@ get_keys.snapshot <- function(x, ...) {
   return(attr(x, "keys"))
 }
 #' Get keys from an object
-#' @method get_keys snapshot_tree
+#' @method get_keys tracked_df
 #' @export
-get_keys.snapshot_tree <- function(x, ...) {
+get_keys.tracked_df <- function(x, ...) {
   return(attr(x, "keys"))
 }
 #' Get keys from an object
@@ -162,9 +161,9 @@ get_keys.data.frame <- function(x, keys, ...) {
 }
 
 #' Return all combinations of keys
-#' @param tree snapshot tree
+#' @param tracked tracked dataframe
 #' @param ... snapshot names
-get_key_combs <- function(tree, ...) {
+get_key_combs <- function(tracked, ...) {
   snaps <- rlang::ensyms(...)
   snaps <- as.character(snaps)
   keys <- get_keys(tree)

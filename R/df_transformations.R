@@ -1,17 +1,18 @@
 
 #' Overlay one dataframe onto another
 #'
-#' @param x dataframe
+#' @param x dataframe to be edited
 #' @param y dataframe containing edits
 #' @param by vector of columns to join by
+#' @inheritParams rlang::args_dots_empty
 #' @param perl use perl-compatible regex
 #' @export
-overlay <- function(x, y, by, perl = TRUE ) {
+overlay <- function(x, y, by, ..., perl = TRUE) {
   if (missing(by) && is_snapshot(x)) by <- get_keys(x)
   # ensure correct col order
-  x_cols <- c(by, setdiff(names(x), by))
-  cols_to_overlay <- setdiff(intersect(names(x), names(y)), by)
-  y_cols <- c(by, cols_to_overlay)
+  x_cols <- c(by, setdiff(names(x), by)) #x cols in correct order
+  cols_to_overlay <- setdiff(intersect(names(x), names(y)), by) #x non-key cols
+  y_cols <- c(by, cols_to_overlay) #probably same as x_cols?
   x <- x[x_cols]
   y <- y[y_cols]
   y_overlay <- y[cols_to_overlay]
@@ -26,7 +27,7 @@ overlay <- function(x, y, by, perl = TRUE ) {
   out <- x
   key_1 <- by[1]
   for (r in seq_len( nrow(y) ) ) {
-    first_pattern <- y[[by_1]][[r]]
+    first_pattern <- y[[key_1]][[r]]
     idx_to_replace <- match_cache[[key_1]][[first_pattern]]
     for (key in by[-1]) {
       pattern <- y[[key]][[r]]
@@ -34,13 +35,7 @@ overlay <- function(x, y, by, perl = TRUE ) {
                                   match_cache[[key]][[pattern]])
     }
   }
-
-  #idx_to_replace <- purrr::reduce(
-  #    purrr::imap( as.list(y[r, by]),
-  #        \(rgx, col) match_cache[[col]][[rgx]] ),
-  #    intersect)
-
-    out[idx_to_replace, cols_to_overlay] <- y_overlay[r, cols_to_overlay]
+  out[idx_to_replace, cols_to_overlay] <- y_overlay[r, cols_to_overlay]
 
   return(out)
 }

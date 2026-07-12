@@ -4,12 +4,14 @@
 \alias{track}
 \title{Track a dataframe through stages}
 \usage{
-track(..., keys)
+track(data, keys, name = "init")
 }
 \arguments{
-\item{...}{dataframes (preferably one) to track}
+\item{data}{dataframe to track}
 
 \item{keys}{a vector of keys used to identify the data}
+
+\item{name}{name of the dataframe within the tracked_df}
 }
 \description{
 Track a dataframe through stages

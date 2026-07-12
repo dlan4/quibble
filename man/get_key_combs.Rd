@@ -4,10 +4,10 @@
 \alias{get_key_combs}
 \title{Return all combinations of keys}
 \usage{
-get_key_combs(tree, ...)
+get_key_combs(tracked, ...)
 }
 \arguments{
-\item{tree}{snapshot tree}
+\item{tracked}{tracked dataframe}
 
 \item{...}{snapshot names}
 }

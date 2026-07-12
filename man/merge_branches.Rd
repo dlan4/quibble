@@ -15,3 +15,6 @@ be preferred when coalescing.}
 \description{
 Completes a full join of the data, then coalesces where there are columns with the same name.
 }
+\details{
+NOT IN USE
+}
