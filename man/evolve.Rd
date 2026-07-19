@@ -2,18 +2,18 @@
 % Please edit documentation in R/track.R
 \name{evolve}
 \alias{evolve}
-\title{Add new snapshots to a tree}
+\title{Add new stages to a tree}
 \usage{
-evolve(.x, ..., .from)
+evolve(.data, ..., .from)
 }
 \arguments{
-\item{...}{Name-value pairs of snapshots to add to the tree}
+\item{.data}{a tracked dataframe}
 
-\item{tree}{a snapshot tree}
+\item{...}{Name-value pairs of stages to add to the tree}
 
-\item{from}{Optional: the snapshot which is being used. If not provided, this
+\item{.from}{Optional: vector of stages being used. If not provided, this
 is automatically deduced from the expressions supplied.}
 }
 \description{
-Add new snapshots to a tree
+Add new stages to a tree
 }

@@ -6,56 +6,54 @@
 #' @details
 #' This function creates a tracked_df object.
 #' @export
-track <- function(data, keys, name = "init") {
-
-  t_df <- new_tracked_df(data, keys, name)
+track <- function(.data, keys, name = "init") {
+  t_df <- new_tracked_df(.data, keys, name)
   validate_tracked_df(t_df)
   return(t_df)
 }
 
 
-#' Add new snapshots to a tree
-#' @param tree a snapshot tree
-#' @param ... Name-value pairs of snapshots to add to the tree
-#' @param from Optional: the snapshot which is being used. If not provided, this
+#' Add new stages to a tree
+#' @param .data a tracked dataframe
+#' @param ... Name-value pairs of stages to add to the tree
+#' @param .from Optional: vector of stages being used. If not provided, this
 #'  is automatically deduced from the expressions supplied.
 #' @export
-evolve <- function(.x, ..., .from) {
-  snaps <- rlang::enquos(...)
-  keys <- get_keys(.x)
-  for (i in seq_along(snaps)) {
+evolve <- function(.data, ..., .from) {
+  stages <- rlang::enquos(...)
+  keys <- get_keys(.data)
+  for (i in seq_along(stages)) {
     # evaluate
-    tracked_mask <- rlang::as_data_mask(.x$data)
-    tracked_mask$.tracked <- .x$data
-    snapshot_name <- names(snaps)[i]
-
+    tracked_mask <- rlang::as_data_mask(.data$data)
+    tracked_mask$.tracked <- .data$data
+    stage_name <- names(stages)[i]
     # find parent
     if (!missing(.from)) {
       parents <- .from
     } else {
-      parents <- find_parents( expr=rlang::get_expr( snaps[[i]] ),
-                              tracked = .x )
+      parents <- find_parents( expr=rlang::get_expr( stages[[i]] ),
+                              tracked = .data )
     }
     # ensure parent is not the same as child
-    .x$parents[[snapshot_name]] <- parents[parents != snapshot_name]
+    .data$parents[[stage_name]] <- parents[parents != stage_name]
     # eval
-    .x$data[[snapshot_name]] <- rlang::eval_tidy(snaps[[i]], tracked_mask) %>%
-      new_snapshot(., keys = keys, from = NULL)
+    .data$data[[stage_name]] <- rlang::eval_tidy(stages[[i]], tracked_mask) %>%
+      new_stage(., keys = keys, from = NULL)
   }
-  return (.x)
+  return (.data)
 }
 
-#' Combine snapshots
+#' Combine stages
 #'
 #' Completes a full join of the data, then coalesces where there are columns with the same name.
 #'
 #' NOT IN USE
-#' @param ... snapshots to merge
-#' @param resolve if prefer_first (the default), the first named snapshot will
+#' @param ... stages to merge
+#' @param resolve if prefer_first (the default), the first named stage will
 #'   be preferred when coalescing.
 merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
   branches <- list(...)
-  stopifnot ( all( purrr::map_lgl(branches, is_snapshot) ) )
+  stopifnot ( all( purrr::map_lgl(branches, is_stage) ) )
   keys <- get_keys(branches[[1]])
 
   if (missing(resolve)) resolve <- "prefer_first"
@@ -84,23 +82,21 @@ merge_branches <- function(..., resolve = c("prefer_first", "prefer_last")) {
   return(merged)
 }
 
-#' Check if object is a snapshot
+#' Check if object is a stage
 #' @param x object to check
 #' @export
-is_snapshot <- function(x) "snapshot" %in% class(x)
+is_stage <- function(x) "df_stage" %in% class(x)
 
-#' Check if object is a snapshot tree
+#' Check if object is a tracked dataframe
 #' @param x object to check
 #' @export
 is_tracked_df <- function(x) "tracked_df" %in% class(x)
 
 new_tracked_df <- function(x, keys, name) {
-  snap <- new_snapshot(x, keys = keys)
-  snap <- rlang::list2(!!name := snap)
-  parents <- rep(NA, length(x)) %>%
-    as.list %>%
-    rlang::set_names(names(x))
-  structure( list(data = snap, parents = parents),
+  stage <- new_stage(x, keys = keys)
+  stage <- rlang::list2(!!name := stage)
+  parents <- rlang::list2(!!name := c(NA))
+  structure( list(data = stage, parents = parents),
              class = c("tracked_df", "list"), keys = keys )
 }
 
@@ -108,41 +104,38 @@ validate_tracked_df <- function(x) {
 
 }
 
-latest <- function(t_df) {
-  t_df[[length(t_df)]]
-}
 
 #' Print
 #'
-#' Prints a tracked DF showing the most recent snapshot
+#' Prints a tracked DF showing the most recent stage
 #' @param x Object to format or print
 #' @param ... arguments to pass to methods
 #' @method print tracked_df
 #' @export
 print.tracked_df <- function(x, ...) {
   s <- x$data
-  cat(sep="","Tracked dataframe with snapshots: ", paste0( names(s), collapse = ", "),
+  cat(sep="","Tracked dataframe with stages: ", paste0( names(s), collapse = ", "),
       ". Showing ",names(s)[length(s)],":\nKeys = ",paste0(get_keys(x), collapse=", "),"\n")
   print( s[[length(s)]], ... )
 }
 
-new_snapshot <- function(data, keys = NULL, from = NULL) {
-  structure( tibble::tibble(data), class = c("snapshot", "tbl_df", "tbl", "data.frame"),
+new_stage <- function(data, keys = NULL, from = NULL) {
+  structure( tibble::tibble(data), class = c("df_stage", "tbl_df", "tbl", "data.frame"),
              from = from, keys = keys )
 }
 
 #' Get keys from an object
 #'
 #' This is a helper function which calls attr(x, "keys").
-#' @param x Either a snapshot or snapshot_tree
+#' @param x Either a stage or tracked_df
 #' @export
 get_keys <- function(x, ...) {
   UseMethod("get_keys")
 }
 #' Get keys from an object
-#' @method get_keys snapshot
+#' @method get_keys df_stage
 #' @export
-get_keys.snapshot <- function(x, ...) {
+get_keys.df_stage <- function(x, ...) {
   return(attr(x, "keys"))
 }
 #' Get keys from an object
@@ -162,13 +155,13 @@ get_keys.data.frame <- function(x, keys, ...) {
 
 #' Return all combinations of keys
 #' @param tracked tracked dataframe
-#' @param ... snapshot names
-get_key_combs <- function(tracked, ...) {
-  snaps <- rlang::ensyms(...)
-  snaps <- as.character(snaps)
-  keys <- get_keys(tree)
+#' @param ... stage names
+get_key_combs <- function(.data, ...) {
+  stage <- rlang::ensyms(...)
+  stage <- as.character(stage)
+  keys <- get_keys(.data)
   keys <- rlang::syms(keys)
-  tree$data[snaps] %>%
+  .data$data[stage] %>%
     purrr::list_rbind() %>%
     dplyr::distinct( !!!keys )
 }

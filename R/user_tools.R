@@ -1,17 +1,18 @@
-
 #' Plot tracked dataframe as a graph
 #'
 #' @param x a tracked_df object
 #' @param record optionally a named vector of key-value pairs, to show values for a specific key in the graph
 #' @param value_col name of a column to draw values from, if record is specified
+#' @param value_format a function with single argument to format the value_col
 #' @param metric metric to show: either value, row_n, or a summary function with argument table, which returns
-#'   a character of length 1 for each snapshot. Defaults to 'value' if record is provided
+#'   a character of length 1 for each stage. Defaults to 'value' if record is provided
 #' @param plot_function a function with arguement graph producing the output of the plot. can map
 #'   value, .in (int), .out (int), .type (normal/init/merge/final) and .label
 #' @param ... arguments to be passed to methods
 #' @method plot tracked_df
 #' @export
 plot.tracked_df <- function(x, record = NULL, value_col = NULL,
+                            value_format = function(v) v,
                        metric = c("value", "row_n"), plot_function, ...) {
   keys <- get_keys(x)
   # if there's only one value column assume that should be plotted
@@ -52,8 +53,7 @@ plot.tracked_df <- function(x, record = NULL, value_col = NULL,
     x$data[[table]] %>%
       dplyr::filter(!!!record_filter_expr) %>%
       dplyr::select(!!value_col) %>%
-      dplyr::mutate(!!value_col := ifelse(is.numeric(!!value_col), round(!!value_col, 1),
-                                          !!value_col)) %>%
+      dplyr::mutate(!!value_col := value_format(!!value_col)) %>%
       {ifelse( nrow(.),  as.character(.), "NULL") }
   }
   value_capture_fns$row_n <- function(table) {
@@ -65,7 +65,7 @@ plot.tracked_df <- function(x, record = NULL, value_col = NULL,
 
     edge_data <- x$data %>% names %>%
       tibble::tibble(to = .) %>%
-      mutate(!!value_col := map_chr(to, fn) )
+      dplyr::mutate(!!value_col := purrr::map_chr(to, fn) )
     edges <- dplyr::left_join(edges, edge_data, by = "to")
   }
   graph_in <- list()
@@ -111,7 +111,7 @@ crumbs_plot_default <- function(graph) {
     ) +
     ggraph::geom_node_point(ggplot2::aes(colour = .type), size = 8) +
     ggraph::geom_node_text(
-      aes(label = .label),
+      ggplot2::aes(label = .label),
       nudge_x = 0.15, nudge_y = 0,
       size = 4
     ) +
@@ -123,30 +123,30 @@ crumbs_plot_default <- function(graph) {
                                  name = "Node type") +
     ggplot2::theme_void() +
     ggplot2::theme(
-      plot.margin = margin(0, 25, 30, 0),
+      plot.margin = ggplot2::margin(0, 25, 30, 0),
       legend.position = "right"
     )
 }
 
-#' Compare snapshots
+#' Compare stages
 #' @param tree a tracked_df object
 #' @param values list of value columns
-#' @param ... snapshots to select
+#' @param ... stages to select
 #' @param comp_names glue specification using {.col} and/or {.name}
 #' @param diffs if TRUE, will display TRUE/FALSE
 #' @export
 history <- function(tree, values, ..., comp_names = "{.col}_{.name}", diffs = FALSE ) {
   values <- rlang::ensyms(values)
   values <- as.character(values)
-  snaps <- rlang::ensyms(...)
+  stages <- rlang::ensyms(...)
   keys <- get_keys(tree)
   rename_fn <- function(.col, .name, string = comp_names ) {
     glue::glue( string )
   }
-  # filter for requested snapshots and select relevant columns
-  filtered_data <- tree$data[ as.character(snaps) ] %>%
-    purrr::imap( \(snap, .name) {
-      selection <- dplyr::select( snap, dplyr::all_of(keys), !!!values )
+  # filter for requested stages and select relevant columns
+  filtered_data <- tree$data[ as.character(stages) ] %>%
+    purrr::imap( \(stage, .name) {
+      selection <- dplyr::select( stage, dplyr::all_of(keys), !!!values )
       dplyr::rename_with( selection, .cols = dplyr::all_of(values), ~rename_fn(., .name) )
       }) %>%
     purrr::reduce( \(a, b) dplyr::full_join(a, b, by = keys) )
@@ -161,24 +161,12 @@ history <- function(tree, values, ..., comp_names = "{.col}_{.name}", diffs = FA
   return(filtered_data)
 }
 
-#' Compare all snapshots within a tree
-#' This is a special case of history()
-#' @param tree a snapshot tree
-#' @param values list of value columns
-#' @param comp_names glue specification using {.col} and/or {.name}
-#' @param ... arguments to pass to history()
-#' @export
-history_all <- function(tree, values, comp_names = "{.col}_{.name}", ...) {
-  values <- rlang::ensym(values)
-  all_snapshot_names <- rlang::syms( names(tree$data) )
-  history(tree, !!values, !!!all_snapshot_names, comp_names = comp_names, ...)
-}
 
-#' Restore key combinatioins to a snapshot
+#' Restore key combinations to a stages
 #'
 #' One use case for this is restoring original keys
-#' @param data snapshot
-#' @param to snapshot which contains the key combinations you want to restore
+#' @param data stage
+#' @param to stage which contains the key combinations you want to restore
 #' @param which keys to restore - not in use yet
 #' @export
 restore_keys <- function(data, to, which = "all") {
@@ -188,8 +176,8 @@ restore_keys <- function(data, to, which = "all") {
   to[keys] %>%
     dplyr::left_join(data, by = keys_in_data) %>%
     dplyr::select(!!!col_order) %>%
-    # preserve snapshot order
-    new_snapshot(keys = keys)
+    # preserve stage order
+    new_stage(keys = keys)
 }
 
 

@@ -8,6 +8,7 @@
   x,
   record = NULL,
   value_col = NULL,
+  value_format = function(v) v,
   metric = c("value", "row_n"),
   plot_function,
   ...
@@ -20,8 +21,10 @@
 
 \item{value_col}{name of a column to draw values from, if record is specified}
 
+\item{value_format}{a function with single argument to format the value_col}
+
 \item{metric}{metric to show: either value, row_n, or a summary function with argument table, which returns
-a character of length 1 for each snapshot. Defaults to 'value' if record is provided}
+a character of length 1 for each stage. Defaults to 'value' if record is provided}
 
 \item{plot_function}{a function with arguement graph producing the output of the plot. can map
 value, .in (int), .out (int), .type (normal/init/merge/final) and .label}

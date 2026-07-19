@@ -7,7 +7,7 @@
 get_keys(x, ...)
 }
 \arguments{
-\item{x}{Either a snapshot or snapshot_tree}
+\item{x}{Either a stage or tracked_df}
 }
 \description{
 This is a helper function which calls attr(x, "keys").

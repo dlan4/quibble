@@ -7,7 +7,7 @@
 aggregate_data(data, exprs, col, value, exclude)
 }
 \arguments{
-\item{data}{a snapshot}
+\item{data}{a stage}
 
 \item{exprs}{list of expressions to add}
 

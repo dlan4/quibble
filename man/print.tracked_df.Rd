@@ -12,5 +12,5 @@
 \item{...}{arguments to pass to methods}
 }
 \description{
-Prints a tracked DF showing the most recent snapshot
+Prints a tracked DF showing the most recent stage
 }

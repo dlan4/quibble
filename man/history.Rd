@@ -2,7 +2,7 @@
 % Please edit documentation in R/user_tools.R
 \name{history}
 \alias{history}
-\title{Compare snapshots}
+\title{Compare stages}
 \usage{
 history(tree, values, ..., comp_names = "{.col}_{.name}", diffs = FALSE)
 }
@@ -11,12 +11,12 @@ history(tree, values, ..., comp_names = "{.col}_{.name}", diffs = FALSE)
 
 \item{values}{list of value columns}
 
-\item{...}{snapshots to select}
+\item{...}{stages to select}
 
 \item{comp_names}{glue specification using {.col} and/or {.name}}
 
 \item{diffs}{if TRUE, will display TRUE/FALSE}
 }
 \description{
-Compare snapshots
+Compare stages
 }

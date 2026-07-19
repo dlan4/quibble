@@ -7,7 +7,7 @@
 edit_data(data, edits, ...)
 }
 \arguments{
-\item{data}{a snapshot or a dataframe}
+\item{data}{a stage or a dataframe}
 
 \item{edits}{a list or dataframe of edits to be applied}
 

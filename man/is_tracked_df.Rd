@@ -2,7 +2,7 @@
 % Please edit documentation in R/track.R
 \name{is_tracked_df}
 \alias{is_tracked_df}
-\title{Check if object is a snapshot tree}
+\title{Check if object is a tracked dataframe}
 \usage{
 is_tracked_df(x)
 }
@@ -10,5 +10,5 @@ is_tracked_df(x)
 \item{x}{object to check}
 }
 \description{
-Check if object is a snapshot tree
+Check if object is a tracked dataframe
 }
