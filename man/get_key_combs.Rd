@@ -4,12 +4,12 @@
 \alias{get_key_combs}
 \title{Return all combinations of keys}
 \usage{
-get_key_combs(tracked, ...)
+get_key_combs(.data, ...)
 }
 \arguments{
-\item{tracked}{tracked dataframe}
+\item{...}{stage names}
 
-\item{...}{snapshot names}
+\item{tracked}{tracked dataframe}
 }
 \description{
 Return all combinations of keys

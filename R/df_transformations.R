@@ -8,7 +8,7 @@
 #' @param perl use perl-compatible regex
 #' @export
 overlay <- function(x, y, by, ..., perl = TRUE) {
-  if (missing(by) && is_snapshot(x)) by <- get_keys(x)
+  if (missing(by) && is_stage(x)) by <- get_keys(x)
   # ensure correct col order
   x_cols <- c(by, setdiff(names(x), by)) #x cols in correct order
   cols_to_overlay <- setdiff(intersect(names(x), names(y)), by) #x non-key cols
@@ -52,7 +52,7 @@ pgrepl <- function(x, data) {
 #' Apply edits to a dataframe
 #' @examples
 #' print(5 + 5)
-#' @param data a snapshot or a dataframe
+#' @param data a stage or a dataframe
 #' @param edits a list or dataframe of edits to be applied
 #' @param na_alias an optional alias to use for NAs
 #' @param ... arguments passsed on to methods, primarily keys if data is a dataframe
@@ -87,7 +87,7 @@ edit_data <- function(data, edits, ... ) {
 #' The main additions compared to dplyr::mutate(!!!exprs) are
 #' * Specify axis of aggregation
 #' * Specify records to exclude
-#' @param data a snapshot
+#' @param data a stage
 #' @param exprs list of expressions to add
 #' @param col key column containing IDs to aggregate
 #' @param value column containing values to aggregate

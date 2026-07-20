@@ -2,14 +2,14 @@
 % Please edit documentation in R/user_tools.R
 \name{restore_keys}
 \alias{restore_keys}
-\title{Restore key combinatioins to a snapshot}
+\title{Restore key combinations to a stages}
 \usage{
 restore_keys(data, to, which = "all")
 }
 \arguments{
-\item{data}{snapshot}
+\item{data}{stage}
 
-\item{to}{snapshot which contains the key combinations you want to restore}
+\item{to}{stage which contains the key combinations you want to restore}
 
 \item{which}{keys to restore - not in use yet}
 }

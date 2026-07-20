@@ -60,9 +60,9 @@ edits$Closed <- edits$Closed %>%
     geo_id = geo_id, fruit = ".", status = "Closed")
 edits <- purrr::list_rbind(edits)
 
-x = shop_costs %>% dplyr::relocate(geo_id, .after = fruit)
+dx = shop_costs %>% dplyr::relocate(geo_id, .after = fruit)
 edits = edits[c("geo_id","fruit","status","cost_at_shop")]
-y = edits
+dy = edits
 
 std_overlay_otp <- overlay(x, y, by = c("geo_id", "fruit"))
 
@@ -79,10 +79,12 @@ as.list(timings)
 #  for_loop = overlay(x, y, by = c("geo_id", "fruit")),
 #  times = 50
 #)
-
-
-quibble::track(x, keys = c("geo_id", "fruit")) %>%
+edits
+plot(x, record = c("di", "apple"), "status")
+x <- quibble::track(dx, keys = c("geo_id", "fruit")) %>%
   quibble::evolve(
-    edits1 = quibble::overlay(init, .env$y, by = quibble::get_keys(.)))
-  history_all(values = status, diffs = TRUE)
+    edits1 = quibble::overlay(init, .env$dy, by = quibble::get_keys(.)))
+x %>%
+
+  history()
 

@@ -2,14 +2,14 @@
 % Please edit documentation in R/track.R
 \name{merge_branches}
 \alias{merge_branches}
-\title{Combine snapshots}
+\title{Combine stages}
 \usage{
 merge_branches(..., resolve = c("prefer_first", "prefer_last"))
 }
 \arguments{
-\item{...}{snapshots to merge}
+\item{...}{stages to merge}
 
-\item{resolve}{if prefer_first (the default), the first named snapshot will
+\item{resolve}{if prefer_first (the default), the first named stage will
 be preferred when coalescing.}
 }
 \description{

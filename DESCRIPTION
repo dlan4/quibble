@@ -1,4 +1,4 @@
-Package: quibble
+Package: crumbs
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
@@ -9,8 +9,7 @@ Authors@R: c(
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
+Description: Framework for tracking changes to dataframes.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -20,5 +19,8 @@ Imports:
     igraph,
     ggraph,
     purrr,
-    dplyr
+    dplyr,
+    scales,
+    tidyselect,
+    cli
 Config/roxygen2/version: 8.0.0
