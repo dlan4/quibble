@@ -10,7 +10,7 @@ peek_tracked_df <- function(fn = NULL) {
   }
   return(context)
 }
-as.list(.select_tracked_df)
+
 eval_stage_select <- function(expr, data) {
   expr <- rlang::enquo(expr)
   # restore initial context on exit
@@ -53,7 +53,6 @@ latest <- function(vars = NULL) {
   length(vars)
 }
 
-eval_stage_select( descendants(), .data)
 
 #' Select descendants of a stage
 #'
