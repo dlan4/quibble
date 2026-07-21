@@ -34,8 +34,8 @@ overlay <- function(x, y, by, ..., perl = TRUE) {
       idx_to_replace <- intersect(idx_to_replace,
                                   match_cache[[key]][[pattern]])
     }
+    out[idx_to_replace, cols_to_overlay] <- y_overlay[r, cols_to_overlay]
   }
-  out[idx_to_replace, cols_to_overlay] <- y_overlay[r, cols_to_overlay]
 
   return(out)
 }

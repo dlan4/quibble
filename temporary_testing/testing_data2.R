@@ -64,7 +64,7 @@ dx = shop_costs %>% dplyr::relocate(geo_id, .after = fruit)
 edits = edits[c("geo_id","fruit","status","cost_at_shop")]
 dy = edits
 
-std_overlay_otp <- overlay(x, y, by = c("geo_id", "fruit"))
+std_overlay_otp <- overlay(dx, dy, by = c("geo_id", "fruit"))
 
 timings <- new.env()
 add_timing <- function(name, tim) {
@@ -80,11 +80,9 @@ as.list(timings)
 #  times = 50
 #)
 edits
-plot(x, record = c("di", "apple"), "status")
-x <- quibble::track(dx, keys = c("geo_id", "fruit")) %>%
-  quibble::evolve(
-    edits1 = quibble::overlay(init, .env$dy, by = quibble::get_keys(.)))
-x %>%
-
-  history()
+plot(x, record = c("es", "watermelon"), "cost_at_shop")
+x <- crumbs::track(dx, keys = c("geo_id", "fruit")) %>%
+  crumbs::evolve(
+    edits1 = crumbs::overlay(init, .env$dy, by = crumbs::get_keys(.)))
+x
 
