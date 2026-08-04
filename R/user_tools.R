@@ -155,7 +155,7 @@ history <- function(tree, value, ..., comp_names = "{.col}_{.name}", diffs = FAL
     value_cols <- setdiff(names(filtered_data), keys )
     filtered_matrix <- as.matrix(filtered_data[value_cols])
     filtered_data[[".is_different"]] <- !(
-      rowSums(is.na(filtered_matrix)) %in% c(0, length(filtered_matrix)) &
+      rowSums(is.na(filtered_matrix)) %in% c(0, ncol(filtered_matrix)) |
       rowSums(filtered_matrix != filtered_matrix[, 1], na.rm = TRUE) == 0
     )
   }
