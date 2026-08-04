@@ -130,33 +130,34 @@ crumbs_plot_default <- function(graph) {
 
 #' Compare stages
 #' @param tree a tracked_df object
-#' @param values list of value columns
+#' @param value name of value column to compare
 #' @param ... stages to select
 #' @param comp_names glue specification using {.col} and/or {.name}
 #' @param diffs if TRUE, will display TRUE/FALSE
 #' @export
-history <- function(tree, values, ..., comp_names = "{.col}_{.name}", diffs = FALSE ) {
-  values <- rlang::ensyms(values)
-  values <- as.character(values)
-  stages <- rlang::ensyms(...)
+history <- function(tree, value, ..., comp_names = "{.col}_{.name}", diffs = FALSE ) {
+  stages <- rlang::expr(c(...))
   keys <- get_keys(tree)
   rename_fn <- function(.col, .name, string = comp_names ) {
     glue::glue( string )
   }
+  stage_pos <- tidyselect::eval_select(stages, tree$data)
   # filter for requested stages and select relevant columns
-  filtered_data <- tree$data[ as.character(stages) ] %>%
+  filtered_data_unjoined <- tree$data[ stage_pos ] %>%
     purrr::imap( \(stage, .name) {
-      selection <- dplyr::select( stage, dplyr::all_of(keys), !!!values )
-      dplyr::rename_with( selection, .cols = dplyr::all_of(values), ~rename_fn(., .name) )
-      }) %>%
+      selection <- dplyr::select( stage, dplyr::all_of(keys), all_of(value) )
+      dplyr::rename_with( selection, .cols = dplyr::all_of(value), ~rename_fn(., .name) )
+      })
+  filtered_data <- filtered_data_unjoined %>%
     purrr::reduce( \(a, b) dplyr::full_join(a, b, by = keys) )
 
   if (diffs) {
-    filtered_data <- filtered_data %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(.is_different = dplyr::n_distinct(
-        dplyr::c_across(-dplyr::all_of(keys)) ) != 1) %>%
-      dplyr::ungroup()
+    value_cols <- setdiff(names(filtered_data), keys )
+    filtered_matrix <- as.matrix(filtered_data[value_cols])
+    filtered_data[[".is_different"]] <- !(
+      rowSums(is.na(filtered_matrix)) %in% c(0, length(filtered_matrix)) &
+      rowSums(filtered_matrix != filtered_matrix[, 1], na.rm = TRUE) == 0
+    )
   }
   return(filtered_data)
 }
