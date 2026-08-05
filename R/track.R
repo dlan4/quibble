@@ -35,7 +35,10 @@ evolve <- function(.data, ..., .from) {
                               tracked = .data )
     }
     # ensure parent is not the same as child
-    .data$parents[[stage_name]] <- parents[parents != stage_name]
+    parents <- parents[parents != stage_name]
+    if (!length(parents)) parents <- NA
+    .data$parents[[stage_name]] <- parents
+    
     # eval
     .data$data[[stage_name]] <- rlang::eval_tidy(stages[[i]], tracked_mask) %>%
       new_stage(., keys = keys, from = NULL)
